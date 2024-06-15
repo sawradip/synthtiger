@@ -11,6 +11,21 @@ from synthtiger import utils
 from synthtiger.layers.layer import Layer
 
 
+def _get_text_size(font, text_str, direction=None):
+    try:
+        if direction:
+            _, _, w, h = font.getbbox(text_str, direction=direction)
+        else:
+            _, _, w, h = font.getbbox(text_str)
+    except AttributeError:
+        if direction:
+            w, h = font.getsize(text_str, direction=direction)  # Pillow<8
+        else:
+            w, h = font.getsize(text_str)  # Pillow<8
+
+    return w, h
+
+
 class TextLayer(Layer):
     def __init__(
         self,
@@ -172,11 +187,13 @@ class TextLayer(Layer):
 
         if not vertical:
             ascent, descent = font.getmetrics()
-            width = font.getsize(text, direction=direction)[0]
+            # width = font.getsize(text, direction=direction)[0]
+            width = font.getbbox(text, direction=direction)[2]
             height = ascent + descent
             bbox = [0, -ascent, width, height]
         else:
-            width, height = font.getsize(text, direction=direction)
+            # width, height = font.getsize(text, direction=direction)
+            _, _, width, height = font.getbbox(text, direction=direction)
             bbox = [-width // 2, 0, width, height]
 
         return bbox
